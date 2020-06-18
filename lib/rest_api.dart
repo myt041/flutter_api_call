@@ -23,11 +23,12 @@ class ApiService {
     if (response.statusCode == 200) {
 
       var body = response.body;
-      var jsonData = json.decode(body);
-      final parsed = json.decode(jsonData['data']).cast<Map<String, dynamic>>();
+      final Map jsonData = json.decode(body);
+//      final parsed = json.decode(jsonData['data']).cast<Map<String, dynamic>>();
 //      final parsed = json.decode(body).cast<EmployeeRes>() as EmployeeRes;
 
-      return parsed.map<Employee>((json) =>Employee.fromJson(json)).toList();
+//      return parsed.map<Employee>((json) =>Employee.fromJson(json)).toList();
+      final empRes = EmployeeRes.fromJson(jsonData);
 
 //      debugPrint('==>>${json.decode(response.body)}');
 //      var jsonData = json.decode(response.body);
@@ -35,7 +36,7 @@ class ApiService {
 //      if (jsonData['status'] == 'success') {
 //        return jsonData['data'];
 //      } else {
-//        return null;
+        return empRes.list;
 //      }
     } else {
       throw Exception('Unable to fetch products from the REST API');
@@ -44,7 +45,8 @@ class ApiService {
   }
 
 
-  static Future<bool> addEmployee(body) async {
+
+  static Future<bool> addEmployee( {Map body}) async {
     // BODY
     // {
     //   "name": "test",

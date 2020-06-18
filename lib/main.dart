@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
+import 'package:flutterapicall/AddEmployee.dart';
 import 'package:flutterapicall/model/Album.dart';
 import 'package:flutterapicall/model/Employee.dart';
 import 'package:flutterapicall/rest_api.dart';
@@ -42,19 +43,23 @@ class MyHomePage extends StatefulWidget {
 
   final String title;
 
+
   @override
   State<StatefulWidget> createState() => _MyAppState();
 }
 
 class _MyAppState extends State<MyHomePage> {
 //  Future<Album> futureAlbum;
-  Future<List<Employee>> employeeList;
+//  Future<List<Employee>> employeeList;
+  List<Employee> employeeList = List();
+  bool isLoading = false;
 
   @override
   void initState() {
     super.initState();
+    fetchData();
 //    futureAlbum = fetchAlbum();
-    employeeList = ApiService.getEmployees();
+//    employeeList = ApiService.getEmployees();
   }
 
   @override
@@ -66,41 +71,34 @@ class _MyAppState extends State<MyHomePage> {
         appBar: AppBar(
           title: Text('Fetch data api'),
         ),
-        body: Center(
-          child: FutureBuilder<List<Employee>>(
-            future: employeeList,
-            builder: (context, snapshot) {
-              if (snapshot.hasData) {
-                final employees = snapshot.data;
+        floatingActionButton: FloatingActionButton(
+          backgroundColor:  Colors.deepOrangeAccent,
+          child: Icon(Icons.add),
+          onPressed: (){
+            Navigator.push(context, MaterialPageRoute(builder: (context) => AddEmployee()));
 
-                return ListView.separated(
-                  itemBuilder: (context, index) {
-                    return ListTile(
-                      title: Text(employees[index].name),
-                      subtitle: Text('Age ${employees[index].age}'),
-                    );
-                  },
-                  separatorBuilder: (context, index) {
-                    return Divider(
-                      height: 2,
-                      color: Colors.black,
-                    );
-                  },
-                  itemCount: employees.length,
-                );
-              } else if (snapshot.hasError) {
-                return Text("${snapshot.error}");
-              }
-              return CircularProgressIndicator();
-            },
-          ),
+          },
+        ),
+        body: isLoading ? Center(
+          child: CircularProgressIndicator(),
+        ) :ListView.separated(
+          itemBuilder: (context, index) {
+            return ListTile(
+              title: Text(employeeList[index].name),
+              subtitle: Text('Age ${employeeList[index].age}'),
+            );
+          },
+          separatorBuilder: (context, index) {
+            return Divider(
+              height: 2,
+              color: Colors.black,
+            );
+          },
+          itemCount: employeeList.length,
         ),
       ),
     );
   }
-
-
-
 
 
   Future<Album> fetchAlbum() async {
@@ -115,5 +113,23 @@ class _MyAppState extends State<MyHomePage> {
   }
 
 
+  fetchData() async {
+    setState(() {
+      isLoading = true;
+    });
+    final response =
+        await http.get("http://dummy.restapiexample.com/api/v1/employees");
+    if (response.statusCode == 200) {
+      var body = response.body;
+      final Map jsonData = json.decode(body);
+      final empRes = EmployeeRes.fromJson(jsonData);
 
+      employeeList = empRes.list;
+      setState(() {
+        isLoading = false;
+      });
+    } else {
+      throw Exception('Failed to load Data');
+    }
+  }
 }
